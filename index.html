@@ -13,7 +13,7 @@
         }
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: transparent; /* Fundo neutro para OBS */
             padding: 2vw;
             box-sizing: border-box;
             display: flex;
@@ -30,9 +30,9 @@
             box-sizing: border-box;
         }
         .card {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparente para visibilidade */
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Sombra para destaque */
             padding: 2vw;
             text-align: left;
             transition: transform 0.2s;
@@ -45,18 +45,18 @@
         }
         .card h2 {
             margin: 0 0 1vw;
-            color: #333;
+            color: #333; /* Cor original para legibilidade */
             font-size: clamp(1.2em, 2.5vw, 1.5em);
             text-align: center;
         }
         .card p {
             margin: 0.5vw 0;
             font-size: clamp(0.9em, 2vw, 1.1em);
-            color: #666;
+            color: #666; /* Cor original */
         }
         .card .count {
             font-weight: bold;
-            color: #007BFF;
+            color: #007BFF; /* Azul vibrante */
         }
         .detail-screen, .recording-screen {
             position: fixed;
@@ -64,14 +64,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #f4f4f4;
+            background-color: transparent; /* Fundo neutro */
             display: none;
             flex-direction: column;
             box-sizing: border-box;
             padding: 2vw;
         }
         .detail-header, .recording-header {
-            background-color: #007BFF;
+            background-color: #007BFF; /* Cor sólida para destaque */
             color: white;
             padding: 1vw;
             text-align: center;
@@ -86,16 +86,16 @@
             overflow-y: auto;
         }
         .left-side, .right-side {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparente */
             border-radius: 8px;
             padding: 1vw;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             width: 50%;
             box-sizing: border-box;
         }
         .left-side h3, .right-side h3 {
             margin: 0 0 1vw;
-            color: #333;
+            color: #333; /* Cor original */
         }
         .left-side ul {
             list-style: none;
@@ -106,23 +106,24 @@
         }
         .left-side li {
             padding: 0.5vw;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #eee; /* Borda original */
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: #333; /* Texto escuro para contraste */
         }
         .left-side li.selectable {
             cursor: pointer;
         }
         .left-side li.selectable:hover {
-            background-color: #f0f0f0;
+            background-color: #f0f0f0; /* Hover original */
         }
         .left-side li.selectable.selected {
             background-color: #007BFF;
             color: white;
         }
         .left-side li.updated-today {
-            background-color: #e0e0e0;
+            background-color: #e0e0e0; /* Cinza original */
             cursor: default;
         }
         .badge {
@@ -133,9 +134,9 @@
             font-size: 0.8em;
             color: white;
         }
-        .badge.milhar { background-color: #28a745; }
-        .badge.centena { background-color: #ffc107; }
-        .badge.dezena { background-color: #dc3545; }
+        .badge.milhar { background-color: #28a745; } /* Verde */
+        .badge.centena { background-color: #ffc107; } /* Amarelo */
+        .badge.dezena { background-color: #dc3545; } /* Vermelho */
         .right-side ul {
             list-style: none;
             padding: 0;
@@ -146,12 +147,13 @@
         .right-side li {
             padding: 0.5vw;
             border-bottom: 1px solid #eee;
+            color: #333; /* Texto escuro */
         }
         .detail-footer, .recording-footer {
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparente */
             padding: 1vw;
             border-radius: 0 0 8px 8px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -178,42 +180,45 @@
             margin-top: 1vw;
         }
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #ddd; /* Borda original */
             padding: 0.5vw;
             text-align: left;
+            background-color: transparent; /* Fundo neutro */
+            color: #333; /* Texto escuro */
         }
         th {
-            background-color: #f8f8f8;
+            background-color: #f8f8f8; /* Cinza claro para cabeçalho */
         }
         .loading-text {
             margin: 1vw 0;
             font-style: italic;
-            color: #666;
+            color: #666; /* Cinza original */
         }
         .guess-card {
-            background-color: #f8f8f8;
+            background-color: #f8f8f8; /* Cinza claro original */
             border-radius: 4px;
             padding: 0.5vw;
             margin: 0.5vw;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             width: 60px;
             height: 40px;
             display: inline-flex;
             justify-content: center;
             align-items: center;
             font-size: 1em;
+            color: #333; /* Texto escuro */
         }
         .guess-card.milhar {
-            background-color: #28a745;
+            background-color: #28a745; /* Verde */
             color: white;
         }
         .guess-card.centena {
-            background-color: #ffc107;
+            background-color: #ffc107; /* Amarelo */
             color: black;
         }
         .guess-card.dezena {
-            background-color: #dc3545;
+            background-color: #dc3545; /* Vermelho */
             color: white;
         }
         .guesses-container {
