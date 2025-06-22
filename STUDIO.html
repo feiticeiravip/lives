@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Loterias - Hoje</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 2vw;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2vw;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 2vw;
+            text-align: left;
+            transition: transform 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card h2 {
+            margin: 0 0 1vw;
+            color: #333;
+            font-size: clamp(1.2em, 2.5vw, 1.5em);
+            text-align: center;
+        }
+        .card p {
+            margin: 0.5vw 0;
+            font-size: clamp(0.9em, 2vw, 1.1em);
+            color: #666;
+        }
+        .card .count {
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .detail-screen, .recording-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: none;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 2vw;
+        }
+        .detail-header, .recording-header {
+            background-color: #007BFF;
+            color: white;
+            padding: 1vw;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            font-size: clamp(1.2em, 2.5vw, 1.5em);
+        }
+        .detail-body, .recording-body {
+            display: flex;
+            flex: 1;
+            gap: 2vw;
+            padding: 1vw 0;
+            overflow-y: auto;
+        }
+        .left-side, .right-side {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1vw;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .left-side h3, .right-side h3 {
+            margin: 0 0 1vw;
+            color: #333;
+        }
+        .left-side ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .left-side li {
+            padding: 0.5vw;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .left-side li.selectable {
+            cursor: pointer;
+        }
+        .left-side li.selectable:hover {
+            background-color: #f0f0f0;
+        }
+        .left-side li.selectable.selected {
+            background-color: #007BFF;
+            color: white;
+        }
+        .left-side li.updated-today {
+            background-color: #e0e0e0;
+            cursor: default;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.2vw 0.5vw;
+            margin-left: 0.5vw;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: white;
+        }
+        .badge.milhar { background-color: #28a745; }
+        .badge.centena { background-color: #ffc107; }
+        .badge.dezena { background-color: #dc3545; }
+        .right-side ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .right-side li {
+            padding: 0.5vw;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-footer, .recording-footer {
+            background-color: white;
+            padding: 1vw;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .back-link, .record-link, .exit-link {
+            color: #007BFF;
+            text-decoration: none;
+            font-size: clamp(0.9em, 2vw, 1.1em);
+        }
+        .back-link:hover, .record-link:hover, .exit-link:hover {
+            text-decoration: underline;
+            color: #0056b3;
+        }
+        .record-link.hidden {
+            display: none;
+        }
+        .record-link {
+            flex-grow: 1;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1vw;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5vw;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f8f8;
+        }
+        .loading-text {
+            margin: 1vw 0;
+            font-style: italic;
+            color: #666;
+        }
+        .guess-card {
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            padding: 0.5vw;
+            margin: 0.5vw;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 60px;
+            height: 40px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1em;
+        }
+        .guess-card.milhar {
+            background-color: #28a745;
+            color: white;
+        }
+        .guess-card.centena {
+            background-color: #ffc107;
+            color: black;
+        }
+        .guess-card.dezena {
+            background-color: #dc3545;
+            color: white;
+        }
+        .guesses-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5vw;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="cardsContainer"></div>
+    <div class="detail-screen" id="detailScreen">
+        <div class="detail-header" id="detailHeader"></div>
+        <div class="detail-body">
+            <div class="left-side" id="leftSide"></div>
+            <div class="right-side" id="rightSide"></div>
+        </div>
+        <div class="detail-footer">
+            <a href="#" class="back-link" id="backLink">Voltar para tela inicial</a>
+            <a href="#" class="record-link" id="recordLink">Iniciar tela de gravação</a>
+        </div>
+    </div>
+    <div class="recording-screen" id="recordingScreen">
+        <div class="recording-header" id="recordingHeader"></div>
+        <div class="recording-body">
+            <div class="left-side" id="recordingLeftSide"></div>
+            <div class="right-side" id="recordingRightSide"></div>
+        </div>
+        <div class="recording-footer">
+            <a href="#" class="exit-link" id="exitLink">Sair</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzfVgBrOpQNUFoEp23py2otIerdoyM7dk",
+            authDomain: "acertos-online-9f959.firebaseapp.com",
+            databaseURL: "https://acertos-online-9f959-default-rtdb.firebaseio.com",
+            projectId: "acertos-online-9f959"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Lista de sites
+        const sites = [
+            {name: "Maluca Bahia"},
+            {name: "Paratodos Bahia"},
+            {name: "Lotece Ceara"},
+            {name: "Look Loterias"},
+            {name: "Lotep PB"},
+            {name: "PT Rio"},
+            {name: "PT SP"},
+            {name: "Loteria Nacional"}
+        ];
+
+        // Obtém a data atual no formato "YYYY-MM-DD"
+        const today = new Date().toISOString().split("T")[0];
+
+        // Estado global para armazenar os contadores de cada site
+        let siteCounts = {};
+
+        // Função para contar comparações do dia atual
+        function countComparisons(comparisons) {
+            if (!comparisons) return { milhar: 0, centena: 0, dezena: 0 };
+
+            const todayComparisons = comparisons.filter(comp => 
+                comp.timestamp.startsWith(today)
+            );
+
+            return {
+                milhar: todayComparisons.filter(comp => comp.text.includes("Milhar")).length,
+                centena: todayComparisons.filter(comp => comp.text.includes("Centena")).length,
+                dezena: todayComparisons.filter(comp => comp.text.includes("Dezena")).length
+            };
+        }
+
+        // Função para contar acertos por título
+        function countHitsByTitle(comparisons, title) {
+            if (!comparisons) return { milhar: 0, centena: 0, dezena: 0 };
+
+            const todayComparisons = comparisons.filter(comp => 
+                comp.timestamp.startsWith(today) && comp.text.includes(title)
+            );
+
+            return {
+                milhar: todayComparisons.filter(comp => comp.text.includes("Milhar")).length,
+                centena: todayComparisons.filter(comp => comp.text.includes("Centena")).length,
+                dezena: todayComparisons.filter(comp => comp.text.includes("Dezena")).length
+            };
+        }
+
+        // Função para criar um card
+        function createCard(siteName, counts) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <h2>${siteName}</h2>
+                <p>Milhar: <span class="count">${counts.milhar}</span></p>
+                <p>Centena: <span class="count">${counts.centena}</span></p>
+                <p>Dezena: <span class="count">${counts.dezena}</span></p>
+            `;
+            card.addEventListener("click", () => showDetailScreen(siteName));
+            return card;
+        }
+
+        // Função para atualizar o título do lado direito
+        function updateRightSideTitle(rightSide, selectedTitle) {
+            const h3 = rightSide.querySelector("h3");
+            if (selectedTitle) {
+                h3.textContent = `Palpites Gerados para ${selectedTitle}:`;
+            } else {
+                h3.textContent = "Palpites Gerados para a próxima extração:";
+            }
+        }
+
+        // Função para animar o texto de carregamento
+        function animateLoadingText(element) {
+            const states = [
+                "Aguarde o resultado",
+                "Aguarde o resultado.",
+                "Aguarde o resultado..",
+                "Aguarde o resultado..."
+            ];
+            let index = 0;
+            setInterval(() => {
+                element.textContent = states[index];
+                index = (index + 1) % states.length;
+            }, 500);
+        }
+
+        // Função para gerar linhas vazias
+        function generateEmptyRows(count) {
+            let rows = '';
+            for (let i = 0; i < count; i++) {
+                rows += `
+                    <tr>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                `;
+            }
+            return rows;
+        }
+
+        // Função para comparar palpites com resultados
+        function compareGuessesWithResults(guesses, results) {
+            const resultNumbers = results.map(row => row[1]);
+            return guesses.map(guess => {
+                let matchType = '';
+                resultNumbers.forEach(result => {
+                    if (result === guess) {
+                        matchType = 'milhar';
+                    } else if (result.slice(-3) === guess.slice(-3)) {
+                        matchType = 'centena';
+                    } else if (result.slice(-2) === guess.slice(-2)) {
+                        matchType = 'dezena';
+                    }
+                });
+                return { guess, matchType };
+            });
+        }
+
+        // Função para criar os cards em tempo real
+        function createCards() {
+            const container = document.getElementById("cardsContainer");
+            container.innerHTML = '';
+
+            sites.forEach(site => {
+                const siteRef = db.ref(`tables/${site.name}`);
+                siteRef.on("value", (snapshot) => {
+                    const data = snapshot.val();
+                    const comparisons = data?.comparisons || [];
+                    const counts = countComparisons(comparisons);
+
+                    siteCounts[site.name] = counts;
+
+                    const existingCard = container.querySelector(`[data-site="${site.name}"]`);
+                    if (existingCard) existingCard.remove();
+
+                    const card = createCard(site.name, counts);
+                    card.setAttribute("data-site", site.name);
+                    container.appendChild(card);
+
+                    const cards = Array.from(container.children);
+                    cards.sort((a, b) => {
+                        const aName = a.getAttribute("data-site");
+                        const bName = b.getAttribute("data-site");
+                        const aCounts = siteCounts[aName] || { milhar: 0, centena: 0, dezena: 0 };
+                        const bCounts = siteCounts[bName] || { milhar: 0, centena: 0, dezena: 0 };
+                        if (aCounts.milhar !== bCounts.milhar) return bCounts.milhar - aCounts.milhar;
+                        if (aCounts.centena !== bCounts.centena) return bCounts.centena - aCounts.centena;
+                        return bCounts.dezena - aCounts.dezena;
+                    });
+                    cards.forEach(card => container.appendChild(card));
+                }, (error) => {
+                    console.error(`Erro ao carregar ${site.name}: ${error}`);
+                    siteCounts[site.name] = { milhar: 0, centena: 0, dezena: 0 };
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.setAttribute("data-site", site.name);
+                    card.innerHTML = `
+                        <h2>${site.name}</h2>
+                        <p>Erro ao carregar dados</p>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        // Função para atualizar a tela de detalhes
+        function updateDetailScreen(siteName, leftSide, rightSide, recordLink) {
+            const siteRef = db.ref(`tables/${siteName}`);
+            siteRef.on("value", (snapshot) => {
+                const data = snapshot.val();
+                const titles = data?.titles ? Object.values(data.titles) : [];
+                const guesses = data?.guesses || [];
+                const comparisons = data?.comparisons || [];
+
+                leftSide.innerHTML = `
+                    <h3>Títulos das Tabelas</h3>
+                    <ul>
+                        ${titles.map(titleObj => {
+                            const isUpdatedToday = titleObj.lastUpdated?.startsWith(today);
+                            const hits = isUpdatedToday ? countHitsByTitle(comparisons, titleObj.fixedTitle) : null;
+                            return `
+                                <li class="${isUpdatedToday ? 'updated-today' : 'selectable'}">
+                                    ${titleObj.fixedTitle}
+                                    ${isUpdatedToday ? `
+                                        <span>
+                                            ${hits.milhar > 0 ? `<span class="badge milhar">${hits.milhar}</span>` : ''}
+                                            ${hits.centena > 0 ? `<span class="badge centena">${hits.centena}</span>` : ''}
+                                            ${hits.dezena > 0 ? `<span class="badge dezena">${hits.dezena}</span>` : ''}
+                                        </span>
+                                    ` : ''}
+                                </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                `;
+
+                rightSide.innerHTML = `
+                    <h3></h3>
+                    <ul>
+                        ${guesses.map(guess => `<li>${guess}</li>`).join('')}
+                    </ul>
+                `;
+
+                const titleItems = leftSide.querySelectorAll("li.selectable");
+                if (titleItems.length > 0) {
+                    const previouslySelected = localStorage.getItem("selectedTitle");
+                    let selectedItem = null;
+                    titleItems.forEach(item => {
+                        if (item.textContent.trim() === previouslySelected && !item.classList.contains("updated-today")) {
+                            selectedItem = item;
+                        }
+                    });
+                    if (selectedItem) {
+                        selectedItem.classList.add("selected");
+                        updateRightSideTitle(rightSide, selectedItem.textContent.trim());
+                    } else {
+                        titleItems[0].classList.add("selected");
+                        updateRightSideTitle(rightSide, titleItems[0].textContent.trim());
+                    }
+                    recordLink.classList.remove("hidden");
+
+                    titleItems.forEach(item => {
+                        item.addEventListener("click", () => {
+                            titleItems.forEach(i => i.classList.remove("selected"));
+                            item.classList.add("selected");
+                            updateRightSideTitle(rightSide, item.textContent.trim());
+                            localStorage.setItem("selectedTitle", item.textContent.trim());
+                        });
+                    });
+                } else {
+                    updateRightSideTitle(rightSide, null);
+                    recordLink.classList.add("hidden");
+                }
+            }, (error) => {
+                console.error(`Erro ao carregar ${siteName}: ${error}`);
+                leftSide.innerHTML = "<p>Erro ao carregar títulos</p>";
+                rightSide.innerHTML = "<p>Erro ao carregar palpites</p>";
+                recordLink.classList.add("hidden");
+            });
+
+            return siteRef;
+        }
+
+        // Função para exibir a tela de detalhes
+        function showDetailScreen(siteName) {
+            const detailScreen = document.getElementById("detailScreen");
+            const detailHeader = document.getElementById("detailHeader");
+            const leftSide = document.getElementById("leftSide");
+            const rightSide = document.getElementById("rightSide");
+            const recordLink = document.getElementById("recordLink");
+            const backLink = document.getElementById("backLink");
+
+            detailHeader.textContent = siteName;
+            detailScreen.style.display = "flex";
+            document.getElementById("cardsContainer").style.display = "none";
+
+            let siteRef = updateDetailScreen(siteName, leftSide, rightSide, recordLink);
+
+            const handleBack = (e) => {
+                e.preventDefault();
+                detailScreen.style.display = "none";
+                document.getElementById("cardsContainer").style.display = "grid";
+                siteRef.off();
+                backLink.removeEventListener("click", handleBack);
+            };
+            backLink.addEventListener("click", handleBack);
+
+            const handleRecord = (e) => {
+                e.preventDefault();
+                const selectedTitle = leftSide.querySelector("li.selected")?.textContent.trim() || null;
+                localStorage.setItem("selectedTitle", selectedTitle);
+                siteRef.once("value").then(snapshot => {
+                    const data = snapshot.val();
+                    const guesses = data?.guesses || [];
+                    localStorage.setItem("storedGuesses", JSON.stringify(guesses));
+                    showRecordingScreen(siteName, selectedTitle);
+                });
+                siteRef.off();
+                recordLink.removeEventListener("click", handleRecord);
+            };
+            recordLink.addEventListener("click", handleRecord);
+        }
+
+        // Função para exibir a tela de gravação
+        function showRecordingScreen(siteName, selectedTitle) {
+            const recordingScreen = document.getElementById("recordingScreen");
+            const recordingHeader = document.getElementById("recordingHeader");
+            const recordingLeftSide = document.getElementById("recordingLeftSide");
+            const recordingRightSide = document.getElementById("recordingRightSide");
+            const exitLink = document.getElementById("exitLink");
+
+            recordingHeader.textContent = `Resultado ${selectedTitle || "Sem título selecionado"}`;
+            recordingScreen.style.display = "flex";
+            document.getElementById("detailScreen").style.display = "none";
+
+            const storedGuesses = JSON.parse(localStorage.getItem("storedGuesses")) || [];
+
+            recordingRightSide.innerHTML = `
+                <h3>Palpites Gerados para ${selectedTitle || "a próxima extração"}:</h3>
+                <div class="guesses-container" id="guessesContainer">
+                    ${storedGuesses.map(guess => `<div class="guess-card">${guess}</div>`).join('')}
+                </div>
+            `;
+
+            recordingLeftSide.innerHTML = `
+                <div class="loading-text"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prêmio</th>
+                            <th>Milhar</th>
+                            <th>Grupo</th>
+                            <th>Bicho</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody"></tbody>
+                </table>
+            `;
+            const loadingText = recordingLeftSide.querySelector(".loading-text");
+            animateLoadingText(loadingText);
+
+            const titleRef = db.ref(`tables/${siteName}/titles`).orderByChild("fixedTitle").equalTo(selectedTitle);
+            titleRef.on("value", (snapshot) => {
+                const data = snapshot.val();
+                const tableBody = document.getElementById("resultsTableBody");
+                const guessesContainer = document.getElementById("guessesContainer");
+
+                if (data) {
+                    const titleData = Object.values(data)[0];
+                    const isUpdatedToday = titleData.lastUpdated?.startsWith(today);
+                    const tableData = isUpdatedToday && titleData.latestData ? titleData.latestData : [];
+                    const initialRowCount = titleData?.latestData?.length || 0;
+
+                    if (isUpdatedToday && tableData.length > 0) {
+                        tableBody.innerHTML = tableData.map(row => `
+                            <tr>
+                                <td>${row[0] || ''}</td>
+                                <td>${row[1] || ''} 
+                                    ${storedGuesses.includes(row[1]) ? '<span class="badge milhar">M</span>' : 
+                                      storedGuesses.some(g => g.slice(-3) === row[1].slice(-3)) ? '<span class="badge centena">C</span>' : 
+                                      storedGuesses.some(g => g.slice(-2) === row[1].slice(-2)) ? '<span class="badge dezena">D</span>' : ''}
+                                </td>
+                                <td>${row[2] || ''}</td>
+                                <td>${row[3] || ''}</td>
+                            </tr>
+                        `).join('');
+                        loadingText.style.display = "none";
+
+                        const comparedGuesses = compareGuessesWithResults(storedGuesses, tableData);
+                        guessesContainer.innerHTML = comparedGuesses.map(({ guess, matchType }) => `
+                            <div class="guess-card ${matchType}">${guess}</div>
+                        `).join('');
+                    } else {
+                        tableBody.innerHTML = generateEmptyRows(initialRowCount);
+                        loadingText.style.display = "block";
+                        guessesContainer.innerHTML = storedGuesses.map(guess => `<div class="guess-card">${guess}</div>`).join('');
+                    }
+                } else {
+                    tableBody.innerHTML = generateEmptyRows(0);
+                    loadingText.style.display = "block";
+                    guessesContainer.innerHTML = storedGuesses.map(guess => `<div class="guess-card">${guess}</div>`).join('');
+                }
+            });
+
+            const handleExit = (e) => {
+                e.preventDefault();
+                recordingScreen.style.display = "none";
+                document.getElementById("detailScreen").style.display = "flex";
+                localStorage.removeItem("storedGuesses");
+                titleRef.off();
+                exitLink.removeEventListener("click", handleExit);
+                showDetailScreen(siteName); // Reabre a tela de detalhes com estado atualizado
+            };
+            exitLink.addEventListener("click", handleExit);
+        }
+
+        // Inicializa a criação dos cards
+        window.onload = createCards;
+    </script>
+</body>
+</html>
