@@ -76,7 +76,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: transparent;
+            background-color: transparent; /* Fundo transparente para a tela inteira */
             display: none;
             flex-direction: column;
             box-sizing: border-box;
@@ -97,6 +97,9 @@
             padding: 1vw 0;
             overflow-y: auto;
         }
+        .recording-body {
+            background-color: transparent; /* Garante que o corpo não tenha fundo */
+        }
         .left-side, .right-side {
             background-color: white;
             border-radius: 8px;
@@ -106,7 +109,16 @@
             box-sizing: border-box;
         }
         .recording-body .left-side, .recording-body .right-side {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: transparent; /* Contêineres transparentes */
+            padding: 1vw;
+            box-shadow: none; /* Remove a sombra */
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .recording-body .left-side table {
+            background-color: white; /* Fundo branco apenas na tabela */
+            border-radius: 8px;
+            overflow: hidden; /* Garante que o border-radius seja aplicado */
         }
         .left-side h3, .right-side h3 {
             margin: 0 0 1vw;
@@ -174,10 +186,8 @@
             align-items: center;
         }
         .recording-footer {
-            background-color: transparent;
+            background-color: transparent; /* Remove o fundo do rodapé */
             padding: 1vw;
-            border-radius: 0 0 8px 8px;
-            box-shadow: none;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -218,6 +228,7 @@
             margin: 1vw 0;
             font-style: italic;
             color: #666;
+            background-color: transparent; /* Garante que o texto de carregamento não tenha fundo */
         }
         .guess-card {
             background-color: #f8f8f8;
@@ -399,7 +410,7 @@
 
         // Função para comparar palpites com resultados
         function compareGuessesWithResults(guesses, results) {
-            const resultNumbers = results.map(row => row[1]);
+            const resultNumbers = results.map(row => row[1]).filter(num => num);
             return guesses.map(guess => {
                 let matchType = '';
                 resultNumbers.forEach(result => {
@@ -626,9 +637,9 @@
 
                 if (data) {
                     const titleData = Object.values(data)[0];
-                    const isUpdatedToday = titleData.lastUpdated?.startsWith(today);
+                    const isUpdatedToday = titleData?.lastUpdated?.startsWith(today);
                     const tableData = isUpdatedToday && titleData.latestData ? titleData.latestData : [];
-                    const initialRowCount = titleData?.latestData?.length || 0;
+                    const initialRowCount = titleData?.latestData?.length || 5; // Default to 5 rows if no data
 
                     if (isUpdatedToday && tableData.length > 0) {
                         tableBody.innerHTML = tableData.map(row => `
@@ -636,8 +647,8 @@
                                 <td>${row[0] || ''}</td>
                                 <td>${row[1] || ''} 
                                     ${storedGuesses.includes(row[1]) ? '<span class="badge milhar">M</span>' : 
-                                      storedGuesses.some(g => g.slice(-3) === row[1].slice(-3)) ? '<span class="badge centena">C</span>' : 
-                                      storedGuesses.some(g => g.slice(-2) === row[1].slice(-2)) ? '<span class="badge dezena">D</span>' : ''}
+                                      storedGuesses.some(g => row[1] && g.slice(-3) === row[1].slice(-3)) ? '<span class="badge centena">C</span>' : 
+                                      storedGuesses.some(g => row[1] && g.slice(-2) === row[1].slice(-2)) ? '<span class="badge dezena">D</span>' : ''}
                                 </td>
                                 <td>${row[2] || ''}</td>
                                 <td>${row[3] || ''}</td>
@@ -655,10 +666,15 @@
                         guessesContainer.innerHTML = storedGuesses.map(guess => `<div class="guess-card">${guess}</div>`).join('');
                     }
                 } else {
-                    tableBody.innerHTML = generateEmptyRows(0);
+                    tableBody.innerHTML = generateEmptyRows(5);
                     loadingText.style.display = "block";
                     guessesContainer.innerHTML = storedGuesses.map(guess => `<div class="guess-card">${guess}</div>`).join('');
                 }
+            }, (error) => {
+                console.error(`Erro ao carregar dados para ${selectedTitle}: ${error}`);
+                const tableBody = document.getElementById("resultsTableBody");
+                tableBody.innerHTML = generateEmptyRows(5);
+                loadingText.style.display = "block";
             });
 
             const handleExit = (e) => {
